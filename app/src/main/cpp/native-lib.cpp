@@ -53,7 +53,6 @@ char *jstringToChar(JNIEnv *env, jstring jstr) {
 jobject getApplication(JNIEnv *env) {
     jclass localClass = env->FindClass("android/app/ActivityThread");
     if (localClass != NULL) {
-        LOGE("class have find");
         jmethodID getapplication = env->GetStaticMethodID(localClass, "currentApplication",
                                                           "()Landroid/app/Application;");
         if (getapplication != NULL) {
@@ -104,6 +103,45 @@ void verifySign(JNIEnv *env) {
     char *ch = jstringToChar(env, signstr);
     //输入签名字符串，这里可以进行相关验证
     LOGE("the signtures is :%s", ch);
+}
+
+
+jstring getDeviceID(JNIEnv *env) {
+    jobject mContext = getApplication(env);
+    jclass cls_context = (env)->FindClass("android/content/Context");
+    if (cls_context == 0) {
+        return (env)->NewStringUTF("unknown");
+    }
+    jmethodID getSystemService = (env)->GetMethodID(cls_context,
+                                                    "getSystemService",
+                                                    "(Ljava/lang/String;)Ljava/lang/Object;");
+    if (getSystemService == 0) {
+        return (env)->NewStringUTF("unknown");
+    }
+    jfieldID TELEPHONY_SERVICE = (env)->GetStaticFieldID(cls_context,
+                                                         "TELEPHONY_SERVICE", "Ljava/lang/String;");
+    if (TELEPHONY_SERVICE == 0) {
+        return (env)->NewStringUTF("unknown");
+    }
+    jobject str = (env)->GetStaticObjectField(cls_context, TELEPHONY_SERVICE);
+    jobject telephonymanager = (env)->CallObjectMethod(mContext,
+                                                       getSystemService, str);
+    if (telephonymanager == 0) {
+        return (env)->NewStringUTF("unknown");
+    }
+    jclass cls_tm = (env)->FindClass("android/telephony/TelephonyManager");
+    if (cls_tm == 0) {
+        return (env)->NewStringUTF("unknown");
+    }
+    jmethodID getDeviceId = (env)->GetMethodID(cls_tm, "getDeviceId",
+                                               "()Ljava/lang/String;");
+    if (getDeviceId == 0) {
+        return (env)->NewStringUTF("unknown");
+    }
+    jstring deviceid = static_cast<jstring>((env)->CallObjectMethod(telephonymanager, getDeviceId));
+    char *ch = jstringToChar(env, deviceid);
+    LOGE("the deviceId is %s", ch);
+    return deviceid;
 }
 
 void getBattery() {
@@ -317,12 +355,14 @@ Java_com_qtfreet_anticheckemulator_MainActivity_stringFromJNI(
     int i = check();
     verifySign(env);
     checkAndroid();
+    getDeviceID(env);
     if (i == 0) {
         char *hello = "this is a phone";
+        LOGE("%s", hello);
         return env->NewStringUTF(hello);
     } else {
         char *hello2 = "this is a emulator";
-
+        LOGE("%s", hello2);
         return env->NewStringUTF(hello2);
     }
 }
