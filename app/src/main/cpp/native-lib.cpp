@@ -12,6 +12,19 @@ extern "C" {
 
 //char * antiModels[]={"ChangWan","",""};
 
+void getBattery() {
+    char *info = new char[128];
+
+    char *cmd = "dumpsys battery";
+    FILE *ptr;
+    if ((ptr = popen(cmd, "r")) != NULL) {
+        if (fgets(info, 128, ptr) != NULL) {
+            LOGE("the status is = %s", info);
+        }
+    }
+}
+
+
 int anti(char *res) {
     struct stat buf;
     int result = stat(res, &buf) == 0 ? 1 : 0;
@@ -50,7 +63,7 @@ int checkTemp() {
         while (entry = readdir(dirptr)) {
             // LOGE("%s  \n", entry->d_name);
             char *tmp = entry->d_name;
-            if (strstr(tmp, "thermal_zone")!=NULL) {
+            if (strstr(tmp, "thermal_zone") != NULL) {
                 i++;
             }
         }
@@ -63,16 +76,16 @@ int check() {
     char buff[PROP_VALUE_MAX];
     memset(buff, 0, PROP_VALUE_MAX);
     int i = 0;
-
     if (anti("/system/lib/libc_malloc_debug_qemu.so")) {
         //在cm，魔趣等基于aosp改版的系统上会存在libc_malloc_debug_qemu.so这个文件
-        if (access("/proc/bluetooth", F_OK) != 0) {
+        if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
+            LOGE("the bluetooth is not exist");
             i++;//在误报情况下，再去检测当前设备是否存在蓝牙，不存在则判断为模拟器
         }
 
     }
     if (anti("/system/lib/libc_malloc_debug_qemu.so-arm")) {
-        if (access("/proc/bluetooth", F_OK) != 0) {
+        if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
             i++;
         }
     }
@@ -83,6 +96,10 @@ int check() {
         i++;
     }
     if (anti("/system/bin/microvirt-prop")) {
+        i++;
+    }
+
+    if (anti("/system/lib/libdroid4x.so")) {   //文卓爷
         i++;
     }
     if (anti("/system/bin/windroyed")) {   //文卓爷
