@@ -3,14 +3,108 @@
 #include <sys/stat.h>
 #include <sys/system_properties.h>
 #include <android/log.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <stdlib.h>
 
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
 extern "C" {
 
 //char * antiModels[]={"ChangWan","",""};
+char *jstringToChar(JNIEnv *env, jstring jstr) {
+    if (jstr == NULL) {
+        return NULL;
+
+    }
+    char *rtn = new char;
+    jclass clsstring = env->FindClass("java/lang/String");
+    jstring strencode = env->NewStringUTF("utf-8");
+    jmethodID mid = env->GetMethodID(clsstring, "getBytes", "(Ljava/lang/String;)[B");
+    jbyteArray barr = (jbyteArray) env->CallObjectMethod(jstr, mid, strencode);
+    jsize alen = env->GetArrayLength(barr);
+    jbyte *ba = env->GetByteArrayElements(barr, JNI_FALSE);
+    if (alen > 0) {
+        rtn = (char *) malloc(alen + 1);
+        memcpy(rtn, ba, alen);
+        rtn[alen] = 0;
+
+    } else {
+        rtn = "";
+
+    }
+
+    /**资源清理**/
+    env->ReleaseByteArrayElements(barr, ba, 0);
+    if (clsstring != NULL) {
+        env->DeleteLocalRef(clsstring);
+        clsstring = NULL;
+
+    }
+    if (strencode != NULL) {
+        env->DeleteLocalRef(strencode);
+        strencode = NULL;
+
+    }
+    mid = NULL;
+    return rtn;
+}
+
+
+jobject getApplication(JNIEnv *env) {
+    jclass localClass = env->FindClass("android/app/ActivityThread");
+    if (localClass != NULL) {
+        LOGE("class have find");
+        jmethodID getapplication = env->GetStaticMethodID(localClass, "currentApplication",
+                                                          "()Landroid/app/Application;");
+        if (getapplication != NULL) {
+            jobject application = env->CallStaticObjectMethod(localClass, getapplication);
+            return application;
+        }
+        return NULL;
+    }
+    return NULL;
+}
+
+
+void verifySign(JNIEnv *env) {
+    jobject context = getApplication(env);
+    jclass activity = env->GetObjectClass(context);
+    // 得到 getPackageManager 方法的 ID
+    jmethodID methodID_func = env->GetMethodID(activity, "getPackageManager",
+                                               "()Landroid/content/pm/PackageManager;");
+    // 获得PackageManager对象
+    jobject packageManager = env->CallObjectMethod(context, methodID_func);
+    jclass packageManagerclass = env->GetObjectClass(packageManager);
+    //得到 getPackageName 方法的 ID
+    jmethodID methodID_pack = env->GetMethodID(activity, "getPackageName", "()Ljava/lang/String;");
+    //获取包名
+    jstring name_str = static_cast<jstring>(env->CallObjectMethod(context, methodID_pack));
+    // 得到 getPackageInfo 方法的 ID
+    jmethodID methodID_pm = env->GetMethodID(packageManagerclass, "getPackageInfo",
+                                             "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+    // 获得应用包的信息
+    jobject package_info = env->CallObjectMethod(packageManager, methodID_pm, name_str, 64);
+    // 获得 PackageInfo 类
+    jclass package_infoclass = env->GetObjectClass(package_info);
+    // 获得签名数组属性的 ID
+    jfieldID fieldID_signatures = env->GetFieldID(package_infoclass, "signatures",
+                                                  "[Landroid/content/pm/Signature;");
+    // 得到签名数组，待修改
+    jobject signatur = env->GetObjectField(package_info, fieldID_signatures);
+    jobjectArray signatures = reinterpret_cast<jobjectArray>(signatur);
+    // 得到签名
+    jobject signature = env->GetObjectArrayElement(signatures, 0);
+    // 获得 Signature 类，待修改
+    jclass signature_clazz = env->GetObjectClass(signature);
+    //获取sign
+    jmethodID toCharString = env->GetMethodID(signature_clazz, "toCharsString",
+                                              "()Ljava/lang/String;");
+    //获取签名字符；或者其他进行验证操作
+    jstring signstr = static_cast<jstring>(env->CallObjectMethod(signature, toCharString));
+    char *ch = jstringToChar(env, signstr);
+    //输入签名字符串，这里可以进行相关验证
+    LOGE("the signtures is :%s", ch);
+}
 
 void getBattery() {
     char *info = new char[128];
@@ -62,12 +156,17 @@ int checkTemp() {
     if ((dirptr = opendir("/sys/class/thermal/")) != NULL) {
         while (entry = readdir(dirptr)) {
             // LOGE("%s  \n", entry->d_name);
+            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
+                continue;
+            }
             char *tmp = entry->d_name;
             if (strstr(tmp, "thermal_zone") != NULL) {
                 i++;
             }
         }
         closedir(dirptr);
+    } else {
+        LOGE("open thermal fail");
     }
     return i;
 }
@@ -170,12 +269,54 @@ int check() {
     return i;
 }
 
+pthread_t id = NULL;
+
+void checkAndroidServer() {
+    DIR *dirptr = NULL;
+    int i = 0;
+    struct dirent *entry;
+    if ((dirptr = opendir("/data")) != NULL) {  //data目录没有读权限，行不通
+        while (entry = readdir(dirptr)) {
+            // LOGE("%s  \n", entry->d_name);
+            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
+                continue;
+            }
+            char *tmp = entry->d_name;
+            LOGE("the /data/local/tmp file is %s", tmp);
+//            if (DT_DIR == entry->d_type) {
+//                char *tmp = entry->d_name;
+//                LOGE("the /data/local/tmp file is %s", tmp);
+//            }
+        }
+        closedir(dirptr);
+    } else {
+        LOGE("open tmp fail");
+    }
+}
+
+void checkAndroid() {
+    if (pthread_create(&id, NULL, (void *(*)(void *)) &checkAndroidServer, NULL) != 0) {
+        exit(-1);
+    }
+
+}
+
+/*逍遥模拟器
+ * 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the /system/bin/microvirt-prop is exist
+12-13 12:20:58.671 1615-1615/? E/qtfreet00: the /system/bin/microvirtd is exist
+12-13 12:20:58.671 1615-1615/? E/qtfreet00: the init.svc.vbox86-setup result is stopped
+12-13 12:20:58.671 1615-1615/? E/qtfreet00: the init.svc.microvirtd result is running*/
+
+
+
 
 jstring
 Java_com_qtfreet_anticheckemulator_MainActivity_stringFromJNI(
         JNIEnv *env,
         jobject /* this */) {
     int i = check();
+    verifySign(env);
+    checkAndroid();
     if (i == 0) {
         char *hello = "this is a phone";
         return env->NewStringUTF(hello);
