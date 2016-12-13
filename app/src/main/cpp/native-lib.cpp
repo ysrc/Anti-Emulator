@@ -3,7 +3,9 @@
 #include <sys/stat.h>
 #include <sys/system_properties.h>
 #include <android/log.h>
-
+#include <sys/types.h>
+#include <unistd.h>
+#include <dirent.h>
 
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
 extern "C" {
@@ -15,7 +17,7 @@ int anti(char *res) {
     int result = stat(res, &buf) == 0 ? 1 : 0;
     if (result) {
         LOGE("the %s is exist", res);
-        LOGE("this is a Emulator!!!");
+        //    LOGE("this is a Emulator!!!");
     }
     return result;
 }
@@ -27,7 +29,7 @@ int anti2(char *res) {
             __system_property_get(res, (char *) &buff) > 0 ? 1 : 0; //返回命令行内容的长度
     if (result != 0) {
         LOGE("the %s result is %s", res, buff);
-        LOGE("this is a Emulator!!!");
+        //  LOGE("this is a Emulator!!!");
     }
     return result;
 }
@@ -40,16 +42,39 @@ char *getDeviceInfo(char *res) {
     return buff;
 }
 
+int checkTemp() {
+    DIR *dirptr = NULL; //当前手机的温度检测，手机下均有thermal_zone文件
+    int i = 0;
+    struct dirent *entry;
+    if ((dirptr = opendir("/sys/class/thermal/")) != NULL) {
+        while (entry = readdir(dirptr)) {
+            // LOGE("%s  \n", entry->d_name);
+            char *tmp = entry->d_name;
+            if (strstr(tmp, "thermal_zone")!=NULL) {
+                i++;
+            }
+        }
+        closedir(dirptr);
+    }
+    return i;
+}
+
 int check() {
     char buff[PROP_VALUE_MAX];
     memset(buff, 0, PROP_VALUE_MAX);
     int i = 0;
 
     if (anti("/system/lib/libc_malloc_debug_qemu.so")) {
-        i++;
+        //在cm，魔趣等基于aosp改版的系统上会存在libc_malloc_debug_qemu.so这个文件
+        if (access("/proc/bluetooth", F_OK) != 0) {
+            i++;//在误报情况下，再去检测当前设备是否存在蓝牙，不存在则判断为模拟器
+        }
+
     }
     if (anti("/system/lib/libc_malloc_debug_qemu.so-arm")) {
-        i++;
+        if (access("/proc/bluetooth", F_OK) != 0) {
+            i++;
+        }
     }
     if (anti("/system/bin/qemu_props")) {
         i++;
@@ -120,6 +145,9 @@ int check() {
     if (!strcmp(brand, "xxzs")) {
         i++;
     }
+    if (checkTemp() == 0) {
+        LOGE("can not find the temperature sensor,so this is a Emulator");
+    } //获取不到温度感应器则判定为模拟器
 
     LOGE("the counts is %d", i);
     return i;
