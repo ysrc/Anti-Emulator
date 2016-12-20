@@ -144,18 +144,50 @@ jstring getDeviceID(JNIEnv *env) {
     return deviceid;
 }
 
-void getBattery() {
+void getCpuInfo() { //获取cpu型号
     char *info = new char[128];
-
-    char *cmd = "dumpsys battery";
+    char *split = ":";
+    char *cmd = "/proc/cpuinfo";
     FILE *ptr;
-    if ((ptr = popen(cmd, "r")) != NULL) {
-        if (fgets(info, 128, ptr) != NULL) {
-            LOGE("the status is = %s", info);
+    if ((ptr = fopen(cmd, "r")) != NULL) {
+        while (fgets(info, 128, ptr)) {
+
+            if (strstr(info,
+                       "Hardware")) {  //真机一般会获取到hardware，示例：Qualcomm MSM 8974 HAMMERHEAD (Flattened Device Tree)
+                strtok(info, split);
+                char *s = strtok(NULL, split);
+
+                LOGE("the cpu info is %s", s);
+                break;
+            } else if (strstr(info,
+                              "model name")) { //测试了一个模拟器，取到的是model_name，示例：Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz
+                strtok(info, split);
+                char *s = strtok(NULL, split);
+                LOGE("the cpu info is %s", s);
+                break;
+            }
+
         }
+    } else {
+        LOGE("NULLLLLLLLL");
     }
 }
 
+void getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.4.0-cyanogenmod (ls@ywk) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Tue Apr 12 11:38:13 CST 2016
+// 海马玩：   Linux version 3.4.0-qemu+ (droid4x@CA) (gcc version 4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5) ) #25 SMP PREEMPT Tue Sep 22 15:50:48
+    char *info = new char[128];
+    char *split = ":";
+    char *cmd = "/proc/version";
+    FILE *ptr;
+    if ((ptr = fopen(cmd, "r")) != NULL) {
+        while (fgets(info, 128, ptr)) {
+            LOGE("the version info is %s", info);
+
+        }
+    } else {
+        LOGE("NULLLLLLLLL");
+    }
+}
 
 int anti(char *res) {
     struct stat buf;
@@ -209,6 +241,7 @@ int checkTemp() {
     return i;
 }
 
+
 int check() {
     char buff[PROP_VALUE_MAX];
     memset(buff, 0, PROP_VALUE_MAX);
@@ -219,7 +252,6 @@ int check() {
             LOGE("the bluetooth is not exist");
             i++;//在误报情况下，再去检测当前设备是否存在蓝牙，不存在则判断为模拟器
         }
-
     }
     if (anti("/system/lib/libc_malloc_debug_qemu.so-arm")) {
         if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
@@ -307,37 +339,6 @@ int check() {
     return i;
 }
 
-pthread_t id = NULL;
-
-void checkAndroidServer() {
-    DIR *dirptr = NULL;
-    int i = 0;
-    struct dirent *entry;
-    if ((dirptr = opendir("/data")) != NULL) {  //data目录没有读权限，行不通
-        while (entry = readdir(dirptr)) {
-            // LOGE("%s  \n", entry->d_name);
-            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
-                continue;
-            }
-            char *tmp = entry->d_name;
-            LOGE("the /data/local/tmp file is %s", tmp);
-//            if (DT_DIR == entry->d_type) {
-//                char *tmp = entry->d_name;
-//                LOGE("the /data/local/tmp file is %s", tmp);
-//            }
-        }
-        closedir(dirptr);
-    } else {
-        LOGE("open tmp fail");
-    }
-}
-
-void checkAndroid() {
-    if (pthread_create(&id, NULL, (void *(*)(void *)) &checkAndroidServer, NULL) != 0) {
-        exit(-1);
-    }
-
-}
 
 /*逍遥模拟器
  * 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the /system/bin/microvirt-prop is exist
@@ -353,8 +354,9 @@ Java_com_qtfreet_anticheckemulator_MainActivity_stringFromJNI(
         JNIEnv *env,
         jobject /* this */) {
     int i = check();
+    getCpuInfo();
+    getVersionInfo();
     verifySign(env);
-    checkAndroid();
     getDeviceID(env);
     if (i == 0) {
         char *hello = "this is a phone";
