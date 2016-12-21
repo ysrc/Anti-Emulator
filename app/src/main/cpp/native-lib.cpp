@@ -6,6 +6,27 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <stdlib.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <errno.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <sys/inotify.h>
+#include <stdlib.h>
+
+
+#include <stdbool.h>
+#include <netdb.h>
+#include <sys/time.h>
+#include <pthread.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
 extern "C" {
@@ -65,7 +86,7 @@ jobject getApplication(JNIEnv *env) {
 }
 
 
-void verifySign(JNIEnv *env) {
+char *verifySign(JNIEnv *env) {
     jobject context = getApplication(env);
     jclass activity = env->GetObjectClass(context);
     // 得到 getPackageManager 方法的 ID
@@ -103,6 +124,7 @@ void verifySign(JNIEnv *env) {
     char *ch = jstringToChar(env, signstr);
     //输入签名字符串，这里可以进行相关验证
     LOGE("the signtures is :%s", ch);
+    return ch;
 }
 
 
@@ -340,6 +362,51 @@ int check() {
 }
 
 
+void SocketTest(char *c) {
+    struct sockaddr_in serv_addr;
+    char buff[1024];
+    memset(buff, 0, 1024);
+    memset(&serv_addr, 0, sizeof(serv_addr));
+
+    char *addr = "107.151.180.166";
+    int socketfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socketfd == -1) {
+        LOGE("create error");
+        LOGE("error (errno=%d)", errno);
+        exit(1);
+    }
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(6666);
+    serv_addr.sin_addr.s_addr = inet_addr(addr);
+    if (serv_addr.sin_addr.s_addr == INADDR_NONE) {
+        struct hostent *host = gethostbyname(addr);
+        if (host == NULL) {
+            LOGE("error (errno=%d)", errno);
+            exit(1);
+        }
+        serv_addr.sin_addr.s_addr = ((struct in_addr *) host->h_addr)->s_addr;
+    }
+    memset(serv_addr.sin_zero, 0, sizeof(serv_addr.sin_zero));
+    int conn = connect(socketfd, (struct sockaddr *) &serv_addr, sizeof(struct sockaddr));
+    if (conn == -1) {
+        LOGE("connect error");
+        LOGE("error (errno=%d)", errno);
+        exit(1);
+    }
+    int sen = send(socketfd, c, strlen(c), 0);
+    if (sen == -1) {
+        LOGE("send errorrr");
+        LOGE("error (errno=%d)", errno);
+        exit(1);
+    }
+    while (recv(socketfd, buff, 1023, 0) > 0) {
+        LOGE("%s", buff);
+    }
+    close(socketfd);
+    LOGE("send successssss");
+
+}
+
 /*逍遥模拟器
  * 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the /system/bin/microvirt-prop is exist
 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the /system/bin/microvirtd is exist
@@ -356,8 +423,12 @@ Java_com_qtfreet_anticheckemulator_MainActivity_stringFromJNI(
     int i = check();
     getCpuInfo();
     getVersionInfo();
-    verifySign(env);
+    char *sign = verifySign(env);
+
     getDeviceID(env);
+    SocketTest(sign);
+
+
     if (i == 0) {
         char *hello = "this is a phone";
         LOGE("%s", hello);
@@ -369,4 +440,3 @@ Java_com_qtfreet_anticheckemulator_MainActivity_stringFromJNI(
     }
 }
 }
-
