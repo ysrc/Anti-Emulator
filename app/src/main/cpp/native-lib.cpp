@@ -8,25 +8,10 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <sys/types.h>
 #include <netinet/in.h>
-#include <errno.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <sys/inotify.h>
-#include <stdlib.h>
-
-
-#include <stdbool.h>
-#include <netdb.h>
-#include <sys/time.h>
-#include <pthread.h>
 #include <errno.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <sys/wait.h>
+
 
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
 extern "C" {
@@ -86,46 +71,46 @@ jobject getApplication(JNIEnv *env) {
 }
 
 
-char *verifySign(JNIEnv *env) {
-    jobject context = getApplication(env);
-    jclass activity = env->GetObjectClass(context);
-    // 得到 getPackageManager 方法的 ID
-    jmethodID methodID_func = env->GetMethodID(activity, "getPackageManager",
-                                               "()Landroid/content/pm/PackageManager;");
-    // 获得PackageManager对象
-    jobject packageManager = env->CallObjectMethod(context, methodID_func);
-    jclass packageManagerclass = env->GetObjectClass(packageManager);
-    //得到 getPackageName 方法的 ID
-    jmethodID methodID_pack = env->GetMethodID(activity, "getPackageName", "()Ljava/lang/String;");
-    //获取包名
-    jstring name_str = static_cast<jstring>(env->CallObjectMethod(context, methodID_pack));
-    // 得到 getPackageInfo 方法的 ID
-    jmethodID methodID_pm = env->GetMethodID(packageManagerclass, "getPackageInfo",
-                                             "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
-    // 获得应用包的信息
-    jobject package_info = env->CallObjectMethod(packageManager, methodID_pm, name_str, 64);
-    // 获得 PackageInfo 类
-    jclass package_infoclass = env->GetObjectClass(package_info);
-    // 获得签名数组属性的 ID
-    jfieldID fieldID_signatures = env->GetFieldID(package_infoclass, "signatures",
-                                                  "[Landroid/content/pm/Signature;");
-    // 得到签名数组，待修改
-    jobject signatur = env->GetObjectField(package_info, fieldID_signatures);
-    jobjectArray signatures = reinterpret_cast<jobjectArray>(signatur);
-    // 得到签名
-    jobject signature = env->GetObjectArrayElement(signatures, 0);
-    // 获得 Signature 类，待修改
-    jclass signature_clazz = env->GetObjectClass(signature);
-    //获取sign
-    jmethodID toCharString = env->GetMethodID(signature_clazz, "toCharsString",
-                                              "()Ljava/lang/String;");
-    //获取签名字符；或者其他进行验证操作
-    jstring signstr = static_cast<jstring>(env->CallObjectMethod(signature, toCharString));
-    char *ch = jstringToChar(env, signstr);
-    //输入签名字符串，这里可以进行相关验证
-    LOGE("the signtures is :%s", ch);
-    return ch;
-}
+//char *verifySign(JNIEnv *env) {
+//    jobject context = getApplication(env);
+//    jclass activity = env->GetObjectClass(context);
+//    // 得到 getPackageManager 方法的 ID
+//    jmethodID methodID_func = env->GetMethodID(activity, "getPackageManager",
+//                                               "()Landroid/content/pm/PackageManager;");
+//    // 获得PackageManager对象
+//    jobject packageManager = env->CallObjectMethod(context, methodID_func);
+//    jclass packageManagerclass = env->GetObjectClass(packageManager);
+//    //得到 getPackageName 方法的 ID
+//    jmethodID methodID_pack = env->GetMethodID(activity, "getPackageName", "()Ljava/lang/String;");
+//    //获取包名
+//    jstring name_str = static_cast<jstring>(env->CallObjectMethod(context, methodID_pack));
+//    // 得到 getPackageInfo 方法的 ID
+//    jmethodID methodID_pm = env->GetMethodID(packageManagerclass, "getPackageInfo",
+//                                             "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+//    // 获得应用包的信息
+//    jobject package_info = env->CallObjectMethod(packageManager, methodID_pm, name_str, 64);
+//    // 获得 PackageInfo 类
+//    jclass package_infoclass = env->GetObjectClass(package_info);
+//    // 获得签名数组属性的 ID
+//    jfieldID fieldID_signatures = env->GetFieldID(package_infoclass, "signatures",
+//                                                  "[Landroid/content/pm/Signature;");
+//    // 得到签名数组，待修改
+//    jobject signatur = env->GetObjectField(package_info, fieldID_signatures);
+//    jobjectArray signatures = reinterpret_cast<jobjectArray>(signatur);
+//    // 得到签名
+//    jobject signature = env->GetObjectArrayElement(signatures, 0);
+//    // 获得 Signature 类，待修改
+//    jclass signature_clazz = env->GetObjectClass(signature);
+//    //获取sign
+//    jmethodID toCharString = env->GetMethodID(signature_clazz, "toCharsString",
+//                                              "()Ljava/lang/String;");
+//    //获取签名字符；或者其他进行验证操作
+//    jstring signstr = static_cast<jstring>(env->CallObjectMethod(signature, toCharString));
+//    char *ch = jstringToChar(env, signstr);
+//    //输入签名字符串，这里可以进行相关验证
+//    LOGE("the signtures is :%s", ch);
+//    return ch;
+//}
 
 
 jstring getDeviceID(JNIEnv *env) {
@@ -185,6 +170,9 @@ void getCpuInfo() { //获取cpu型号
                               "model name")) { //测试了一个模拟器，取到的是model_name，示例：Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz
                 strtok(info, split);
                 char *s = strtok(NULL, split);
+                if (strstr(s, "Intel(R) Core(TM) i") != NULL) {
+                    //     kill(getpid(),SIGKILL);
+                }
                 LOGE("the cpu info is %s", s);
                 break;
             }
@@ -204,6 +192,9 @@ void getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.
     if ((ptr = fopen(cmd, "r")) != NULL) {
         while (fgets(info, 128, ptr)) {
             LOGE("the version info is %s", info);
+            if (strstr(info, "qemu") != NULL) {
+                //     kill(getpid(),SIGKILL);
+            }
 
         }
     } else {
@@ -211,38 +202,48 @@ void getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.
     }
 }
 
-int anti(char *res) {
+void antiFile(char *res) {
     struct stat buf;
     int result = stat(res, &buf) == 0 ? 1 : 0;
     if (result) {
-        LOGE("the %s is exist", res);
-        //    LOGE("this is a Emulator!!!");
+        LOGE("%s is exsits emulator!", res);
+        //     kill(getpid(),SIGKILL);
     }
-    return result;
 }
 
-int anti2(char *res) {
+void antiProperty(char *res) {
     char buff[PROP_VALUE_MAX];
     memset(buff, 0, PROP_VALUE_MAX);
     int result =
             __system_property_get(res, (char *) &buff) > 0 ? 1 : 0; //返回命令行内容的长度
     if (result != 0) {
-        LOGE("the %s result is %s", res, buff);
-        //  LOGE("this is a Emulator!!!");
+        LOGE("%s %s is exsits emulator!", res, buff);
+        //  kill(getpid(),SIGKILL);
     }
-    return result;
 }
 
-char *getDeviceInfo(char *res) {
+void getDeviceInfo() {
     char buff[PROP_VALUE_MAX];
     memset(buff, 0, PROP_VALUE_MAX);
-    __system_property_get(res, (char *) &buff);
-    LOGE("the %s result is %s", res, buff);
-    return buff;
+    __system_property_get("ro.product.name", (char *) &buff);
+    LOGE("the model name is %s", buff);
+    if (!strcmp(buff, "ChangWan")) {
+        //  kill(getpid(),SIGKILL);
+    } else if (!strcmp(buff, "Droid4X")) {                     //非0均为模拟器
+        //  kill(getpid(),SIGKILL);
+    } else if (!strcmp(buff, "lgshouyou")) {
+        // kill(getpid(),SIGKILL);
+    } else if (!strcmp(buff, "nox")) {
+        //  kill(getpid(),SIGKILL);
+    } else if (!strcmp(buff, "ttVM_Hdragon")) {
+        //  kill(getpid(),SIGKILL);
+    }
+
 }
 
-int checkTemp() {
+void checkTemp() {
     DIR *dirptr = NULL; //当前手机的温度检测，手机下均有thermal_zone文件
+    //此方法在i9300上测试失败,该方法不稳定
     int i = 0;
     struct dirent *entry;
     if ((dirptr = opendir("/sys/class/thermal/")) != NULL) {
@@ -252,6 +253,7 @@ int checkTemp() {
                 continue;
             }
             char *tmp = entry->d_name;
+            LOGE("thermal name is : %s", tmp);
             if (strstr(tmp, "thermal_zone") != NULL) {
                 i++;
             }
@@ -259,112 +261,54 @@ int checkTemp() {
         closedir(dirptr);
     } else {
         LOGE("open thermal fail");
+        return;
     }
-    return i;
+    if (i == 0) {
+        LOGE("there is no temp sensor");
+        //   kill(getpid(),SIGKILL);
+    }
+}
+
+void testBluetooth() {
+    //此方法在多台设备上也存在问题
+    if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
+        LOGE("there is no bluetooth");
+        //   kill(getpid(), SIGKILL);//在误报情况下，再去检测当前设备是否存在蓝牙，不存在则判断为模拟器
+    }
+    if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
+        //    kill(getpid(), SIGKILL);
+        LOGE("there is no bluetooth");
+    }
+
 }
 
 
-int check() {
-    char buff[PROP_VALUE_MAX];
-    memset(buff, 0, PROP_VALUE_MAX);
-    int i = 0;
-    if (anti("/system/lib/libc_malloc_debug_qemu.so")) {
-        //在cm，魔趣等基于aosp改版的系统上会存在libc_malloc_debug_qemu.so这个文件
-        if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
-            LOGE("the bluetooth is not exist");
-            i++;//在误报情况下，再去检测当前设备是否存在蓝牙，不存在则判断为模拟器
-        }
-    }
-    if (anti("/system/lib/libc_malloc_debug_qemu.so-arm")) {
-        if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
-            i++;
-        }
-    }
-    if (anti("/system/bin/qemu_props")) {
-        i++;
-    }
-    if (anti("/system/bin/androVM-prop")) {   //itools模拟器有此特征
-        i++;
-    }
-    if (anti("/system/bin/microvirt-prop")) {
-        i++;
-    }
-
-    if (anti("/system/lib/libdroid4x.so")) {   //文卓爷
-        i++;
-    }
-    if (anti("/system/bin/windroyed")) {   //文卓爷
-        i++;
-    }
-    if (anti("/system/bin/microvirtd")) {
-        i++;
-    }
-    if (anti("/system/bin/nox-prop")) {  //夜神
-        i++;
-    }
-    if (anti("/system/bin/ttVM-prop")) { //天天模拟器
-        i++;
-    }
-    if (anti("/system/bin/droid4x-prop")) {  //海马玩
-        i++;
-    }
-    if (anti2("init.svc.vbox86-setup")) {
-        i++;
-    }
-    if (anti2("init.svc.droid4x")) {
-        i++;
-    }
-    if (anti2("init.svc.qemud")) {
-        i++;
-    }
-    if (anti2("init.svc.su_kpbs_daemon")) {
-        i++;
-    }
-    if (anti2("init.svc.noxd")) {
-        i++;
-    }
-    if (anti2("init.svc.ttVM_x86-setup")) {
-        i++;
-    }
-    if (anti2("init.svc.xxkmsg")) {
-        i++;
-    }
-    if (anti2("init.svc.microvirtd")) {
-        i++;
-    }
-    getDeviceInfo("ro.product.model");
-    char *model = getDeviceInfo("ro.product.name");
-    if (!strcmp(model, "ChangWan")) {
-        i++;
-    } else if (!strcmp(model, "Droid4X")) {                     //非0均为模拟器
-        i++;
-    } else if (!strcmp(model, "lgshouyou")) {
-        i++;
-    } else if (!strcmp(model, "nox")) {
-        i++;
-    } else if (!strcmp(model, "ttVM_Hdragon")) {
-        i++;
-    }
-    char *hardware = getDeviceInfo("ro.hardware");
-    if (!strcmp(hardware, "goldfish")) {
-        i++;
-    }
-    char *brand = getDeviceInfo("ro.product.brand");
-    if (!strcmp(brand, "xxzs")) {
-        i++;
-    }
-    if (checkTemp() == 0) {
-        LOGE("can not find the temperature sensor,so this is a Emulator");
-    } //获取不到温度感应器则判定为模拟器
-
-    LOGE("the counts is %d", i);
-    return i;
+void check() {
+    antiFile("/system/bin/qemu_props");
+    antiFile("/system/bin/androVM-prop");
+    antiFile("/system/bin/microvirt-prop");
+    antiFile("/system/lib/libdroid4x.so");
+    antiFile("/system/bin/windroyed");
+    antiFile("/system/bin/microvirtd");
+    antiFile("/system/bin/nox-prop");
+    antiFile("/system/bin/ttVM-prop");
+    antiFile("/system/bin/droid4x-prop");
+    antiProperty("init.svc.vbox86-setup");
+    antiProperty("init.svc.droid4x");
+    antiProperty("init.svc.qemud");
+    antiProperty("init.svc.su_kpbs_daemon");
+    antiProperty("init.svc.noxd");
+    antiProperty("init.svc.ttVM_x86-setup");
+    antiProperty("init.svc.xxkmsg");
+    antiProperty("init.svc.microvirtd");
 }
 
 
-void SocketTest(char *c) {
+char *SocketTest(char *c) {
     struct sockaddr_in serv_addr;
     char buff[1024];
+    char res[4096];
+    memset(res, 0, 4096);
     memset(buff, 0, 1024);
     memset(&serv_addr, 0, sizeof(serv_addr));
 
@@ -401,9 +345,11 @@ void SocketTest(char *c) {
     }
     while (recv(socketfd, buff, 1023, 0) > 0) {
         LOGE("%s", buff);
+        strcpy(res, buff);
     }
     close(socketfd);
     LOGE("send successssss");
+    return res;
 
 }
 
@@ -419,24 +365,27 @@ void SocketTest(char *c) {
 jstring
 Java_com_qtfreet_anticheckemulator_MainActivity_stringFromJNI(
         JNIEnv *env,
-        jobject /* this */) {
-    int i = check();
+        jobject /* this */, jstring str) {
+    //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
+    check();
+    testBluetooth();
     getCpuInfo();
     getVersionInfo();
-    char *sign = verifySign(env);
-
+    getDeviceInfo();
+    checkTemp();
     getDeviceID(env);
-    SocketTest(sign);
+//    char *sign = verifySign(env);
+//    char *split = ":";
+//    char *id = jstringToChar(env, str);
+//    int len = strlen(sign) + strlen(id) + strlen(split) + 1;
+//    char *s = (char *) malloc(len);
+//    memset(s, 0, len);
+//    strcat(s, id);
+//    strcat(s, split);
+//    strcat(s, sign);
+//
+//    char *test = SocketTest(s);
+    return env->NewStringUTF("qtfreet");
 
-
-    if (i == 0) {
-        char *hello = "this is a phone";
-        LOGE("%s", hello);
-        return env->NewStringUTF(hello);
-    } else {
-        char *hello2 = "this is a emulator";
-        LOGE("%s", hello2);
-        return env->NewStringUTF(hello2);
-    }
 }
 }
