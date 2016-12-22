@@ -11,9 +11,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
-
+#include <signal.h> // sigtrap stuff, duh
 
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
+
+
 extern "C" {
 
 //char * antiModels[]={"ChangWan","",""};
@@ -53,6 +55,15 @@ char *jstringToChar(JNIEnv *env, jstring jstr) {
     }
     mid = NULL;
     return rtn;
+}
+
+jstring chartoJstring(JNIEnv *env, const char *pat) {
+    jclass strClass = env->FindClass("Ljava/lang/String;");
+    jmethodID ctorID = env->GetMethodID(strClass, "<init>", "([BLjava/lang/String;)V");
+    jbyteArray bytes = env->NewByteArray(strlen(pat));
+    env->SetByteArrayRegion(bytes, 0, strlen(pat), (jbyte *) pat);
+    jstring encoding = env->NewStringUTF("utf-8");
+    return (jstring) env->NewObject(strClass, ctorID, bytes, encoding);
 }
 
 
@@ -151,21 +162,30 @@ jstring getDeviceID(JNIEnv *env) {
     return deviceid;
 }
 
-void getCpuInfo() { //获取cpu型号
+char *getCpuInfo() { //获取cpu型号
     char *info = new char[128];
+    memset(info, 0, 128);
+//    char *res = new char[256];
+//    memset(res,0,256);
     char *split = ":";
     char *cmd = "/proc/cpuinfo";
     FILE *ptr;
     if ((ptr = fopen(cmd, "r")) != NULL) {
         while (fgets(info, 128, ptr)) {
 
+//            if (strstr(info, "Processor") != NULL) {
+//                strtok(info, split);
+//                char *s = strtok(NULL, split);
+//                strcat(res, s);
+////                strcat(res, "|");
+//            }
             if (strstr(info,
                        "Hardware")) {  //真机一般会获取到hardware，示例：Qualcomm MSM 8974 HAMMERHEAD (Flattened Device Tree)
                 strtok(info, split);
                 char *s = strtok(NULL, split);
 
                 LOGE("the cpu info is %s", s);
-                break;
+                return s;
             } else if (strstr(info,
                               "model name")) { //测试了一个模拟器，取到的是model_name，示例：Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz
                 strtok(info, split);
@@ -173,32 +193,30 @@ void getCpuInfo() { //获取cpu型号
                 if (strstr(s, "Intel(R) Core(TM) i") != NULL) {
                     //     kill(getpid(),SIGKILL);
                 }
-                LOGE("the cpu info is %s", s);
-                break;
-            }
 
+                LOGE("the cpu info is %s", s);
+                return s;
+            }
         }
     } else {
         LOGE("NULLLLLLLLL");
     }
 }
 
-void getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.4.0-cyanogenmod (ls@ywk) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Tue Apr 12 11:38:13 CST 2016
+char *getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.4.0-cyanogenmod (ls@ywk) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Tue Apr 12 11:38:13 CST 2016
 // 海马玩：   Linux version 3.4.0-qemu+ (droid4x@CA) (gcc version 4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5) ) #25 SMP PREEMPT Tue Sep 22 15:50:48
-    char *info = new char[128];
-    char *split = ":";
+    char *info = new char[256];
+    memset(info, 0, 256);
     char *cmd = "/proc/version";
     FILE *ptr;
     if ((ptr = fopen(cmd, "r")) != NULL) {
-        while (fgets(info, 128, ptr)) {
+        while (fgets(info, 256, ptr)) {
             LOGE("the version info is %s", info);
-            if (strstr(info, "qemu") != NULL) {
-                //     kill(getpid(),SIGKILL);
-            }
-
+            return info;
         }
     } else {
         LOGE("NULLLLLLLLL");
+        return NULL;
     }
 }
 
@@ -269,6 +287,35 @@ void checkTemp() {
     }
 }
 
+
+void checkBattery() {
+    DIR *dirptr = NULL; //当前手机的温度检测，手机下均有thermal_zone文件
+    //此方法在i9300上测试失败,该方法不稳定
+    int i = 0;
+    struct dirent *entry;
+    if ((dirptr = opendir("/sys/class/power_supply/")) != NULL) {
+        while (entry = readdir(dirptr)) {
+            // LOGE("%s  \n", entry->d_name);
+            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
+                continue;
+            }
+            char *tmp = entry->d_name;
+            LOGE("power_supply name is : %s", tmp);
+            if (strstr(tmp, "battery") != NULL) {
+                i++;
+            }
+        }
+        closedir(dirptr);
+    } else {
+        LOGE("open power_supply fail");
+        return;
+    }
+    if (i == 0) {
+        LOGE("there is no battery");
+        //   kill(getpid(),SIGKILL);
+    }
+}
+
 void testBluetooth() {
     //此方法在多台设备上也存在问题
     if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
@@ -284,14 +331,15 @@ void testBluetooth() {
 
 
 void check() {
-    antiFile("/system/bin/qemu_props");
+    antiFile("/system/bin/qemu_props"); //检测原生模拟器
+    antiFile("/system/bin/qemud");
     antiFile("/system/bin/androVM-prop");
     antiFile("/system/bin/microvirt-prop");
     antiFile("/system/lib/libdroid4x.so");
     antiFile("/system/bin/windroyed");
     antiFile("/system/bin/microvirtd");
-    antiFile("/system/bin/nox-prop");
-    antiFile("/system/bin/ttVM-prop");
+    antiFile("/system/bin/nox-prop"); //夜神
+    antiFile("/system/bin/ttVM-prop"); //天天
     antiFile("/system/bin/droid4x-prop");
     antiProperty("init.svc.vbox86-setup");
     antiProperty("init.svc.droid4x");
@@ -301,6 +349,10 @@ void check() {
     antiProperty("init.svc.ttVM_x86-setup");
     antiProperty("init.svc.xxkmsg");
     antiProperty("init.svc.microvirtd");
+    antiProperty("ro.secure'");
+    antiProperty("ro.kernel.android.qemud");
+    antiProperty("ro.kernel.qemu.gles");
+
 }
 
 
@@ -359,21 +411,57 @@ char *SocketTest(char *c) {
 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the init.svc.vbox86-setup result is stopped
 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the init.svc.microvirtd result is running*/
 
+//void handler_sigtrap(int signo) {
+//    exit(-1);
+//}
+//
+//void handler_sigbus(int signo) {
+//    exit(-1);
+//}
+//
+//int setupSigTrap() {
+//    // BKPT throws SIGTRAP on nexus 5 / oneplus one (and most devices)
+//    signal(SIGTRAP, handler_sigtrap);
+//    // BKPT throws SIGBUS on nexus 4
+//    signal(SIGBUS, handler_sigbus);
+//}
+//
+//// This will cause a SIGSEGV on some QEMU or be properly respected
+//int tryBKPT() {
+//    __asm__ __volatile__ ("bkpt 255");
+//}
 
+JNIEXPORT jstring JNICALL
+Java_com_qtfreet_anticheckemulator_emulator_JniAnti_getCpuinfo(JNIEnv *env, jobject instance) {
 
+    char *res = getCpuInfo();
+
+    return env->NewStringUTF(res);
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_qtfreet_anticheckemulator_emulator_JniAnti_getKernelVersion(JNIEnv *env, jclass type) {
+
+    char *res = getVersionInfo();
+
+    return env->NewStringUTF(res);
+}
 
 jstring
-Java_com_qtfreet_anticheckemulator_MainActivity_stringFromJNI(
+Java_com_qtfreet_anticheckemulator_emulator_JniAnti_stringFromJNI(
         JNIEnv *env,
         jobject /* this */, jstring str) {
     //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
     check();
-    testBluetooth();
-    getCpuInfo();
+    // testBluetooth();
+    char *res = getCpuInfo();
+    LOGE("the couuuuu is %s", res);
     getVersionInfo();
     getDeviceInfo();
-    checkTemp();
+    //  checkTemp();
     getDeviceID(env);
+    checkBattery();
+//    setupSigTrap();
 //    char *sign = verifySign(env);
 //    char *split = ":";
 //    char *id = jstringToChar(env, str);
@@ -385,7 +473,7 @@ Java_com_qtfreet_anticheckemulator_MainActivity_stringFromJNI(
 //    strcat(s, sign);
 //
 //    char *test = SocketTest(s);
-    return env->NewStringUTF("qtfreet");
+    return env->NewStringUTF(res);
 
 }
 }
