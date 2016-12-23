@@ -410,25 +410,6 @@ char *SocketTest(char *c) {
 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the init.svc.vbox86-setup result is stopped
 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the init.svc.microvirtd result is running*/
 
-//void handler_sigtrap(int signo) {
-//    exit(-1);
-//}
-//
-//void handler_sigbus(int signo) {
-//    exit(-1);
-//}
-//
-//int setupSigTrap() {
-//    // BKPT throws SIGTRAP on nexus 5 / oneplus one (and most devices)
-//    signal(SIGTRAP, handler_sigtrap);
-//    // BKPT throws SIGBUS on nexus 4
-//    signal(SIGBUS, handler_sigbus);
-//}
-//
-//// This will cause a SIGSEGV on some QEMU or be properly respected
-//int tryBKPT() {
-//    __asm__ __volatile__ ("bkpt 255");
-//}
 
 jstring getCpuinfo(JNIEnv *env, jobject instance) {
 

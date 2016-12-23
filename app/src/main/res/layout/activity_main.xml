@@ -16,4 +16,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!" />
+
+    <com.qtfreet.anticheckemulator.emulator.GLSurfaceView android:layout_below="@+id/sample_text" android:id="@+id/hwGPU" android:background="#1c6dbe" android:layout_width="match_parent" android:layout_height="20dip" />
+
 </RelativeLayout>
