@@ -82,49 +82,49 @@ jobject getApplication(JNIEnv *env) {
 }
 
 
-//char *verifySign(JNIEnv *env) {
-//    jobject context = getApplication(env);
-//    jclass activity = env->GetObjectClass(context);
-//    // 得到 getPackageManager 方法的 ID
-//    jmethodID methodID_func = env->GetMethodID(activity, "getPackageManager",
-//                                               "()Landroid/content/pm/PackageManager;");
-//    // 获得PackageManager对象
-//    jobject packageManager = env->CallObjectMethod(context, methodID_func);
-//    jclass packageManagerclass = env->GetObjectClass(packageManager);
-//    //得到 getPackageName 方法的 ID
-//    jmethodID methodID_pack = env->GetMethodID(activity, "getPackageName", "()Ljava/lang/String;");
-//    //获取包名
-//    jstring name_str = static_cast<jstring>(env->CallObjectMethod(context, methodID_pack));
-//    // 得到 getPackageInfo 方法的 ID
-//    jmethodID methodID_pm = env->GetMethodID(packageManagerclass, "getPackageInfo",
-//                                             "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
-//    // 获得应用包的信息
-//    jobject package_info = env->CallObjectMethod(packageManager, methodID_pm, name_str, 64);
-//    // 获得 PackageInfo 类
-//    jclass package_infoclass = env->GetObjectClass(package_info);
-//    // 获得签名数组属性的 ID
-//    jfieldID fieldID_signatures = env->GetFieldID(package_infoclass, "signatures",
-//                                                  "[Landroid/content/pm/Signature;");
-//    // 得到签名数组，待修改
-//    jobject signatur = env->GetObjectField(package_info, fieldID_signatures);
-//    jobjectArray signatures = reinterpret_cast<jobjectArray>(signatur);
-//    // 得到签名
-//    jobject signature = env->GetObjectArrayElement(signatures, 0);
-//    // 获得 Signature 类，待修改
-//    jclass signature_clazz = env->GetObjectClass(signature);
-//    //获取sign
-//    jmethodID toCharString = env->GetMethodID(signature_clazz, "toCharsString",
-//                                              "()Ljava/lang/String;");
-//    //获取签名字符；或者其他进行验证操作
-//    jstring signstr = static_cast<jstring>(env->CallObjectMethod(signature, toCharString));
-//    char *ch = jstringToChar(env, signstr);
-//    //输入签名字符串，这里可以进行相关验证
-//    LOGE("the signtures is :%s", ch);
-//    return ch;
-//}
+char *verifySign(JNIEnv *env) {
+    jobject context = getApplication(env);
+    jclass activity = env->GetObjectClass(context);
+    // 得到 getPackageManager 方法的 ID
+    jmethodID methodID_func = env->GetMethodID(activity, "getPackageManager",
+                                               "()Landroid/content/pm/PackageManager;");
+    // 获得PackageManager对象
+    jobject packageManager = env->CallObjectMethod(context, methodID_func);
+    jclass packageManagerclass = env->GetObjectClass(packageManager);
+    //得到 getPackageName 方法的 ID
+    jmethodID methodID_pack = env->GetMethodID(activity, "getPackageName", "()Ljava/lang/String;");
+    //获取包名
+    jstring name_str = static_cast<jstring>(env->CallObjectMethod(context, methodID_pack));
+    // 得到 getPackageInfo 方法的 ID
+    jmethodID methodID_pm = env->GetMethodID(packageManagerclass, "getPackageInfo",
+                                             "(Ljava/lang/String;I)Landroid/content/pm/PackageInfo;");
+    // 获得应用包的信息
+    jobject package_info = env->CallObjectMethod(packageManager, methodID_pm, name_str, 64);
+    // 获得 PackageInfo 类
+    jclass package_infoclass = env->GetObjectClass(package_info);
+    // 获得签名数组属性的 ID
+    jfieldID fieldID_signatures = env->GetFieldID(package_infoclass, "signatures",
+                                                  "[Landroid/content/pm/Signature;");
+    // 得到签名数组，待修改
+    jobject signatur = env->GetObjectField(package_info, fieldID_signatures);
+    jobjectArray signatures = reinterpret_cast<jobjectArray>(signatur);
+    // 得到签名
+    jobject signature = env->GetObjectArrayElement(signatures, 0);
+    // 获得 Signature 类，待修改
+    jclass signature_clazz = env->GetObjectClass(signature);
+    //获取sign
+    jmethodID toCharString = env->GetMethodID(signature_clazz, "toCharsString",
+                                              "()Ljava/lang/String;");
+    //获取签名字符；或者其他进行验证操作
+    jstring signstr = static_cast<jstring>(env->CallObjectMethod(signature, toCharString));
+    char *ch = jstringToChar(env, signstr);
+    //输入签名字符串，这里可以进行相关验证
+    LOGE("the signtures is :%s", ch);
+    return ch;
+}
 
 
-jstring getDeviceID(JNIEnv *env) {
+jstring getDeviceID(JNIEnv *env, jobject instance) {
     jobject mContext = getApplication(env);
     jclass cls_context = (env)->FindClass("android/content/Context");
     if (cls_context == 0) {
@@ -158,7 +158,6 @@ jstring getDeviceID(JNIEnv *env) {
     }
     jstring deviceid = static_cast<jstring>((env)->CallObjectMethod(telephonymanager, getDeviceId));
     char *ch = jstringToChar(env, deviceid);
-    LOGE("the deviceId is %s", ch);
     return deviceid;
 }
 
@@ -431,49 +430,63 @@ char *SocketTest(char *c) {
 //    __asm__ __volatile__ ("bkpt 255");
 //}
 
-JNIEXPORT jstring JNICALL
-Java_com_qtfreet_anticheckemulator_emulator_JniAnti_getCpuinfo(JNIEnv *env, jobject instance) {
+jstring getCpuinfo(JNIEnv *env, jobject instance) {
 
     char *res = getCpuInfo();
 
     return env->NewStringUTF(res);
 }
 
-JNIEXPORT jstring JNICALL
-Java_com_qtfreet_anticheckemulator_emulator_JniAnti_getKernelVersion(JNIEnv *env, jclass type) {
+jstring getKernelVersion(JNIEnv *env, jobject /* this */) {
 
     char *res = getVersionInfo();
 
     return env->NewStringUTF(res);
 }
 
-jstring
-Java_com_qtfreet_anticheckemulator_emulator_JniAnti_stringFromJNI(
-        JNIEnv *env,
-        jobject /* this */, jstring str) {
+jstring getApkSign(JNIEnv *env, jobject /* this */) {
+
+    char *res = verifySign(env);
+
+    return env->NewStringUTF(res);
+}
+static const char *gClassName = "com/qtfreet/anticheckemulator/emulator/JniAnti";
+static JNINativeMethod gMethods[] = {
+        {"getApkSign",       "()Ljava/lang/String;", (void *) getApkSign},
+        {"getKernelVersion", "()Ljava/lang/String;", (void *) getKernelVersion},
+        {"getCpuinfo",       "()Ljava/lang/String;", (void *) getCpuinfo},
+        {"getDeviceID",      "()Ljava/lang/String;", (void *) getDeviceID},
+};
+
+static int registerNativeMethods(JNIEnv *env, const char *className,
+                                 JNINativeMethod *gMethods, int numMethods) {
+    jclass clazz;
+    clazz = env->FindClass(className);
+    if (clazz == NULL) {
+        return JNI_FALSE;
+    }
+    if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
+}
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    JNIEnv *env = NULL;
+    jint result = -1;
+
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return -1;
+    }
     //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
     check();
-    // testBluetooth();
-    char *res = getCpuInfo();
-    LOGE("the couuuuu is %s", res);
-    getVersionInfo();
     getDeviceInfo();
-    //  checkTemp();
-    getDeviceID(env);
     checkBattery();
-//    setupSigTrap();
-//    char *sign = verifySign(env);
-//    char *split = ":";
-//    char *id = jstringToChar(env, str);
-//    int len = strlen(sign) + strlen(id) + strlen(split) + 1;
-//    char *s = (char *) malloc(len);
-//    memset(s, 0, len);
-//    strcat(s, id);
-//    strcat(s, split);
-//    strcat(s, sign);
-//
-//    char *test = SocketTest(s);
-    return env->NewStringUTF(res);
 
+    if (registerNativeMethods(env, gClassName, gMethods,
+                              sizeof(gMethods) / sizeof(gMethods[0])) == JNI_FALSE) {
+        return -1;
+    }
+
+    return JNI_VERSION_1_6;
 }
 }

@@ -11,7 +11,9 @@ public class JniAnti {
 
     public static native String getCpuinfo();
 
-    public static native String stringFromJNI(String str);
+    public static native String getApkSign();
 
     public static native String getKernelVersion();
+
+    public static native String getDeviceID();
 }

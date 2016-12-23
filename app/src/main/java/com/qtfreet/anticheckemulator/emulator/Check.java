@@ -7,8 +7,8 @@ import android.hardware.SensorManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import android.system.Os;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.qtfreet.anticheckemulator.utils.Util;
 
@@ -30,13 +30,13 @@ public class Check {
 
 
     public static boolean checkGravity(Context context) {
-        boolean z = true;
+        boolean z = false;
         List<Sensor> defaultSensor = ((SensorManager) context.getSystemService(SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
         for (Sensor sensor : defaultSensor) {
-//            Log.e("qtfreet00",sensor.getName());
+         //   Log.e("qtfreet000", sensor.getName());
 //            Log.e("qtfreet00",sensor.getVendor());
             if (sensor.getName().equals("Gravity")) {
-                z = false;
+                z = true;
                 break;
             }
         }
