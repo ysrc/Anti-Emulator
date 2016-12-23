@@ -13,9 +13,10 @@ import javax.microedition.khronos.opengles.GL10;
 public class GpuRender implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        gl.glClearColor(8.0f, 8.0f, 8.0f, 0.0f);
         String vendor = gl.glGetString(GL10.GL_VENDOR);
         String renderer = gl.glGetString(GL10.GL_RENDERER);
-        Log.e("qtfreet000", "显卡信息：" + vendor +" "+ renderer);
+        Log.e("qtfreet000", "显卡信息：" + vendor + " " + renderer);
     }
 
     @Override

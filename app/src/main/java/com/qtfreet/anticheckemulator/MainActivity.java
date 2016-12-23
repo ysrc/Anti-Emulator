@@ -1,6 +1,7 @@
 package com.qtfreet.anticheckemulator;
 
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
         Log.e("qtfreet000", "设备型号：" + Check.getModelName());
         Log.e("qtfreet000", "支持GPS：" + Check.hasGPSDevice(this));
         Log.e("qtfreet000", "支持多点触控：" + Check.checkMultiTouch(this));
+        Log.e("qtfreet000","电池温度："+Check.getBatteryTemp(this));
+//        Log.e("qtfreet000",Check.getCameraPixels(this,Check.HasFrontCamera()));
+//        Log.e("qtfreet000",Check.getCameraPixels(this,Check.HasBackCamera()));
+
     }
 
 }

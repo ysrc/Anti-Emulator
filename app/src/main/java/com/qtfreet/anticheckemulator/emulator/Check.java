@@ -1,13 +1,18 @@
 package com.qtfreet.anticheckemulator.emulator;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.telephony.TelephonyManager;
 
 import com.qtfreet.anticheckemulator.utils.Util;
@@ -25,6 +30,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static android.content.Context.SENSOR_SERVICE;
+import static com.qtfreet.anticheckemulator.utils.Util.tempToStr;
 
 /**
  * Created by qtfreet on 2016/12/22.
@@ -260,5 +266,79 @@ public class Check {
         return ((Integer) arrayList.get(arrayList.size() - 1)).intValue();
     }
 
+//
+//    public static String getCameraPixels(Context context, int size) {
+//        if (size == -1) {
+//            return null;
+//        }
+//        Camera camera = Camera.open(size);
+//        Camera.Parameters parameters = camera.getParameters();
+//        List<Camera.Size> localList = parameters.getSupportedPictureSizes();
+//        if (localList != null) {
+//            int[] heights = new int[localList.size()];
+//            int[] widths = new int[localList.size()];
+//            for (int i = 0; i < localList.size(); i++) {
+//                Camera.Size s = localList.get(i);
+//                int sizehieght = s.height;
+//                int sizewidth = s.width;
+//                heights[i] = sizehieght;
+//                widths[i] = sizewidth;
+//            }
+//            int pixels = getMaxNumber(heights) * getMaxNumber(widths);
+//            camera.release();
+//            return String.valueOf(pixels / 10000) + " 万";
+//        }
+//        return null;
+//
+//    }
+//
+//    private static int getMaxNumber(int[] paramArray) {
+//        int temp = paramArray[0];
+//        for (int i = 0; i < paramArray.length; i++) {
+//            if (temp < paramArray[i]) {
+//                temp = paramArray[i];
+//            }
+//        }
+//        return temp;
+//    }
+//
+//    public static int HasBackCamera() {
+//        int numberOfCameras = Camera.getNumberOfCameras();
+//        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+//        for (int i = 0; i < numberOfCameras; i++) {
+//            Camera.getCameraInfo(i, cameraInfo);
+//            if (cameraInfo.facing == 0) {
+//                return i;
+//            }
+//        }
+//        return -1;
+//    }
+//
+//    public static int HasFrontCamera() {
+//        int numberOfCameras = Camera.getNumberOfCameras();
+//        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+//        for (int i = 0; i < numberOfCameras; i++) {
+//            Camera.getCameraInfo(i, cameraInfo);
+//            if (cameraInfo.facing == 1) {
+//                return i;
+//            }
+//        }
+//        return -1;
+//    }
+
+    public static String getBatteryTemp(Activity act) {
+        if (act == null) {
+            return null;
+        }
+        Intent batteryStatus = act.registerReceiver(null, new IntentFilter("android.intent.action.BATTERY_CHANGED"));
+        if (batteryStatus == null) {
+            return null;
+        }
+        int temp = batteryStatus.getIntExtra("temperature", -1);
+        if (temp > 0) {
+            return tempToStr(((float) temp) / 10.0f, 1);
+        }
+        return null;
+    }
 
 }

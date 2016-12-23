@@ -20,7 +20,7 @@ public class GLSurfaceView extends android.opengl.GLSurfaceView {
     }
 
     private void init() {
-        setEGLConfigChooser(false);
+        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         GpuRender gpuRender = new GpuRender();
         setRenderer(gpuRender);
     }

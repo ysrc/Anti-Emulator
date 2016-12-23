@@ -109,4 +109,14 @@ public class Util {
         return String.format("%.1fG", new Object[]{Float.valueOf(((float) size) / 1000.0f)});
     }
 
+    public static String tempToStr(float temp, int tempSetting) {
+        if (temp <= 0.0f) {
+            return "";
+        }
+        if (tempSetting == 2) {
+            return String.format("%.1f°F", new Object[]{Float.valueOf(((9.0f * temp) + 160.0f) / 5.0f)});
+        }
+        return String.format("%.1f°C", new Object[]{Float.valueOf(temp)});
+    }
+
 }
