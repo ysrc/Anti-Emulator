@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
         GLSurfaceView gl = (GLSurfaceView) findViewById(R.id.hwGPU);
         gl.setRenderMode(0);
         Log.e("qtfreet000", "APK签名：" + JniAnti.getApkSign());
+        Log.e("qtfreet000", "程序包名：" + Check.getPackageName(this));
         Log.e("qtfreet000", "CPU信息：" + JniAnti.getCpuinfo());
         Log.e("qtfreet000", "CPU频率：" + Check.getCpuFrequency());
         Log.e("qtfreet000", "CPU核心数量：" + Check.getCpuCore());
@@ -35,8 +36,8 @@ public class MainActivity extends AppCompatActivity {
         Log.e("qtfreet000", "存在重力感应器：" + Check.checkGravity(this));
         Log.e("qtfreet000", "设备厂商：" + Check.getModelBrand());
         Log.e("qtfreet000", "设备型号：" + Check.getModelName());
-
-
+        Log.e("qtfreet000", "支持GPS：" + Check.hasGPSDevice(this));
+        Log.e("qtfreet000", "支持多点触控：" + Check.checkMultiTouch(this));
     }
 
 }
