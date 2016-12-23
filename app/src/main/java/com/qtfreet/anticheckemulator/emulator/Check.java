@@ -9,7 +9,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.qtfreet.anticheckemulator.utils.Util;
 
@@ -32,9 +31,9 @@ import static android.content.Context.SENSOR_SERVICE;
  */
 
 public class Check {
-    static String a = "/cpufreq/cpuinfo_max_freq";
-    static String b = "/cpufreq/cpuinfo_min_freq";
-    static String c = "/cpufreq/scaling_cur_freq";
+    private final static String CPUFREQ_CPUINFO_MAX_FREQ = "/cpufreq/cpuinfo_max_freq";
+    private final static String CPUFREQ_CPUINFO_MIN_FREQ = "/cpufreq/cpuinfo_min_freq";
+    private final static String CPUFREQ_SCALING_CUR_FREQ = "/cpufreq/scaling_cur_freq";
 
 
     public static boolean checkGravity(Context context) {
@@ -247,7 +246,7 @@ public class Check {
         for (File absolutePath : listFiles) {
             String path = absolutePath.getAbsolutePath();
             try {
-                int max = Math.max(Math.max(Integer.parseInt(Util.readFile(path + a)), Integer.parseInt(Util.readFile(path + c))), Integer.parseInt(Util.readFile(path + b)));
+                int max = Math.max(Math.max(Integer.parseInt(Util.readFile(path + CPUFREQ_CPUINFO_MAX_FREQ)), Integer.parseInt(Util.readFile(path + CPUFREQ_SCALING_CUR_FREQ))), Integer.parseInt(Util.readFile(path + CPUFREQ_CPUINFO_MIN_FREQ)));
                 if (max > 0) {
                     arrayList.add(Integer.valueOf(max));
                 }
