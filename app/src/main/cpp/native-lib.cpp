@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
 #include <errno.h>
 #include <signal.h> // sigtrap stuff, duh
 
@@ -18,7 +19,6 @@
 
 extern "C" {
 
-//char * antiModels[]={"ChangWan","",""};
 char *jstringToChar(JNIEnv *env, jstring jstr) {
     if (jstr == NULL) {
         return NULL;
@@ -172,12 +172,6 @@ char *getCpuInfo() { //获取cpu型号
     if ((ptr = fopen(cmd, "r")) != NULL) {
         while (fgets(info, 128, ptr)) {
 
-//            if (strstr(info, "Processor") != NULL) {
-//                strtok(info, split);
-//                char *s = strtok(NULL, split);
-//                strcat(res, s);
-////                strcat(res, "|");
-//            }
             if (strstr(info,
                        "Hardware")) {  //真机一般会获取到hardware，示例：Qualcomm MSM 8974 HAMMERHEAD (Flattened Device Tree)
                 strtok(info, split);
@@ -258,78 +252,8 @@ void getDeviceInfo() {
 
 }
 
-void checkTemp() {
-    DIR *dirptr = NULL; //当前手机的温度检测，手机下均有thermal_zone文件
-    //此方法在i9300上测试失败,该方法不稳定
-    int i = 0;
-    struct dirent *entry;
-    if ((dirptr = opendir("/sys/class/thermal/")) != NULL) {
-        while (entry = readdir(dirptr)) {
-            // LOGE("%s  \n", entry->d_name);
-            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
-                continue;
-            }
-            char *tmp = entry->d_name;
-            LOGE("thermal name is : %s", tmp);
-            if (strstr(tmp, "thermal_zone") != NULL) {
-                i++;
-            }
-        }
-        closedir(dirptr);
-    } else {
-        LOGE("open thermal fail");
-        return;
-    }
-    if (i == 0) {
-        LOGE("there is no temp sensor");
-        //   kill(getpid(),SIGKILL);
-    }
-}
-
-
-void checkBattery() {
-    DIR *dirptr = NULL; //当前手机的温度检测，手机下均有thermal_zone文件
-    //此方法在i9300上测试失败,该方法不稳定
-    int i = 0;
-    struct dirent *entry;
-    if ((dirptr = opendir("/sys/class/power_supply/")) != NULL) {
-        while (entry = readdir(dirptr)) {
-            // LOGE("%s  \n", entry->d_name);
-            if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
-                continue;
-            }
-            char *tmp = entry->d_name;
-            LOGE("power_supply name is : %s", tmp);
-            if (strstr(tmp, "battery") != NULL) {
-                i++;
-            }
-        }
-        closedir(dirptr);
-    } else {
-        LOGE("open power_supply fail");
-        return;
-    }
-    if (i == 0) {
-        LOGE("there is no battery");
-        //   kill(getpid(),SIGKILL);
-    }
-}
-
-void testBluetooth() {
-    //此方法在多台设备上也存在问题
-    if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
-        LOGE("there is no bluetooth");
-        //   kill(getpid(), SIGKILL);//在误报情况下，再去检测当前设备是否存在蓝牙，不存在则判断为模拟器
-    }
-    if (access("/system/lib/libbluetooth_jni.so", F_OK) != 0) {
-        //    kill(getpid(), SIGKILL);
-        LOGE("there is no bluetooth");
-    }
-
-}
-
-
 void check() {
+
     antiFile("/system/bin/qemu_props"); //检测原生模拟器
     antiFile("/system/bin/qemud");
     antiFile("/system/bin/androVM-prop");
@@ -462,7 +386,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
     check();
     getDeviceInfo();
-    checkBattery();
 
     if (registerNativeMethods(env, gClassName, gMethods,
                               sizeof(gMethods) / sizeof(gMethods[0])) == JNI_FALSE) {
