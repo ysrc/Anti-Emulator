@@ -126,6 +126,9 @@ char *verifySign(JNIEnv *env) {
 
 jstring getDeviceID(JNIEnv *env, jobject instance) {
     jobject mContext = getApplication(env);
+    if (mContext == NULL) {
+        return (env)->NewStringUTF("unknown");
+    }
     jclass cls_context = (env)->FindClass("android/content/Context");
     if (cls_context == 0) {
         return (env)->NewStringUTF("unknown");
