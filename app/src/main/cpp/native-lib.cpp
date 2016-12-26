@@ -210,7 +210,7 @@ char *getVersionInfo() {   //获取设备版本，真机示例：Linux version 3
     FILE *ptr;
     if ((ptr = fopen(cmd, "r")) != NULL) {
         while (fgets(info, 256, ptr)) {
-            LOGE("the version info is %s", info);
+            LOGE("the version info is %s", info); //包含qemu+或者tencent均为模拟器
             return info;
         }
     } else {
@@ -351,7 +351,8 @@ void check() {
     antiProperty("ro.secure'");
     antiProperty("ro.kernel.android.qemud");
     antiProperty("ro.kernel.qemu.gles");
-
+    antiProperty("androVM.vbox_dpi");
+    antiProperty("androVM.vbox_graph_mode");
 }
 
 

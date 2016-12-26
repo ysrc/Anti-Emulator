@@ -39,7 +39,8 @@ public class MainActivity extends AppCompatActivity {
         Log.e("qtfreet000", "设备型号：" + Check.getModelName());
         Log.e("qtfreet000", "支持GPS：" + Check.hasGPSDevice(this));
         Log.e("qtfreet000", "支持多点触控：" + Check.checkMultiTouch(this));
-        Log.e("qtfreet000","电池温度："+Check.getBatteryTemp(this));
+        Log.e("qtfreet000", "电池温度：" + Check.getBatteryTemp(this));
+        Log.e("qtfreet000", "电池电压：" + Check.getBatteryVolt(this));
 //        Log.e("qtfreet000",Check.getCameraPixels(this,Check.HasFrontCamera()));
 //        Log.e("qtfreet000",Check.getCameraPixels(this,Check.HasBackCamera()));
 

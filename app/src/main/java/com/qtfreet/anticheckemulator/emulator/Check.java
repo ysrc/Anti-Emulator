@@ -339,4 +339,19 @@ public class Check {
         return null;
     }
 
+    public static String getBatteryVolt(Activity act) {
+        if (act == null) {
+            return null;
+        }
+        Intent batteryStatus = act.registerReceiver(null, new IntentFilter("android.intent.action.BATTERY_CHANGED"));
+        if (batteryStatus == null) {
+            return null;
+        }
+        int volt = batteryStatus.getIntExtra("voltage", -1);
+        if (volt > 0) {
+            return String.valueOf(volt);
+        }
+        return null;
+    }
+
 }
