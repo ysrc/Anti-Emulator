@@ -18,8 +18,6 @@ public class MainActivity extends AppCompatActivity {
 
         // Example of a call to a native method
         TextView tv = (TextView) findViewById(R.id.sample_text);
-
-        tv.setText("hello world");
         GLSurfaceView gl = (GLSurfaceView) findViewById(R.id.hwGPU);
         gl.setRenderMode(0);
         Log.e("qtfreet000", "APK签名：" + JniAnti.getApkSign());
@@ -43,6 +41,14 @@ public class MainActivity extends AppCompatActivity {
         Log.e("qtfreet000", "APK安装路径：" + s);
 //        Log.e("qtfreet000",Check.getCameraPixels(this,Check.HasFrontCamera()));
 //        Log.e("qtfreet000",Check.getCameraPixels(this,Check.HasBackCamera()));
+
+//        String cpu = JniAnti.getCpuinfo();
+//        String cpuFreq = Check.getCpuFrequency();
+//        String kernel = JniAnti.getKernelVersion();
+//        boolean gravity = Check.checkGravity(this);
+
+
+        tv.setText("hello world");
 
     }
 

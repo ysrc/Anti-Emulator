@@ -119,7 +119,6 @@ char *verifySign(JNIEnv *env) {
     jstring signstr = static_cast<jstring>(env->CallObjectMethod(signature, toCharString));
     char *ch = jstringToChar(env, signstr);
     //输入签名字符串，这里可以进行相关验证
-    LOGE("the signtures is :%s", ch);
     return ch;
 }
 
@@ -179,18 +178,18 @@ char *getCpuInfo() { //获取cpu型号
                        "Hardware")) {  //真机一般会获取到hardware，示例：Qualcomm MSM 8974 HAMMERHEAD (Flattened Device Tree)
                 strtok(info, split);
                 char *s = strtok(NULL, split);
-
-                LOGE("the cpu info is %s", s);
                 return s;
             } else if (strstr(info,
                               "model name")) { //测试了一个模拟器，取到的是model_name，示例：Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz
                 strtok(info, split);
                 char *s = strtok(NULL, split);
-                if (strstr(s, "Intel(R) Core(TM) i") != NULL) {
-                    //     kill(getpid(),SIGKILL);
+                //x86架构的移动处理器为Intel(R) Atom(TM)
+                if (strstr(s, "Intel(R) Core(TM)") || strstr(s, "Intel(R) Pentium(R)") ||
+                    strstr(s, "Intel(R) Xeon(R)") ||
+                    strstr(s, "AMD")) { //分别为最常见的酷睿，奔腾，至强，AMD处理器
+
                 }
 
-                LOGE("the cpu info is %s", s);
                 return s;
             }
         }
@@ -207,7 +206,7 @@ char *getVersionInfo() {   //获取设备版本，真机示例：Linux version 3
     FILE *ptr;
     if ((ptr = fopen(cmd, "r")) != NULL) {
         while (fgets(info, 256, ptr)) {
-            LOGE("the version info is %s", info); //包含qemu+或者tencent均为模拟器
+            //包含qemu+或者tencent均为模拟器
             return info;
         }
     } else {
