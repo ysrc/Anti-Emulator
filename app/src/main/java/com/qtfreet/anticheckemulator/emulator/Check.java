@@ -323,7 +323,7 @@ public class Check {
 //        return -1;
 //    }
 
-    public static String getBatteryTemp(Activity act) {
+    public static String getBatteryTemp(Context act) {
         if (act == null) {
             return null;
         }
@@ -338,7 +338,7 @@ public class Check {
         return null;
     }
 
-    public static String getBatteryVolt(Activity act) {
+    public static String getBatteryVolt(Context act) {
         if (act == null) {
             return null;
         }
@@ -353,4 +353,23 @@ public class Check {
         return null;
     }
 
+    public static String toInfoString(Context context) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("cpuinfo", JniAnti.getCpuinfo());
+        map.put("kernelVersion", JniAnti.getKernelVersion());
+        map.put("deviceId", JniAnti.getDeviceID());
+//        map.put("ApkSign", JniAnti.getApkSign());
+        map.put("cpuCore", String.valueOf(getCpuCore()));
+        map.put("cpuFreq", getCpuFrequency());
+        map.put("Gravity", String.valueOf(checkGravity(context)));
+        map.put("BatteryVolt", getBatteryVolt(context));
+        map.put("BatteryTemp", getBatteryTemp(context));
+        map.put("gps", String.valueOf(hasGPSDevice(context)));
+        //map.put("installedApps",getInstalledApps(context));
+        map.put("ModelBrand", getModelBrand());
+        map.put("ModelName", getModelName());
+        map.put("MacAddress", getMacAddress(context));
+        String s = Util.hashMapToStringSort(map);
+        return s;
+    }
 }
