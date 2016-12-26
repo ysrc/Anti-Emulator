@@ -5,15 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
-import android.hardware.Camera;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.qtfreet.anticheckemulator.utils.Util;
 
@@ -30,6 +29,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import static android.content.Context.SENSOR_SERVICE;
+import static android.hardware.Sensor.TYPE_GRAVITY;
 import static com.qtfreet.anticheckemulator.utils.Util.tempToStr;
 
 /**
@@ -46,9 +46,7 @@ public class Check {
         boolean z = false;
         List<Sensor> defaultSensor = ((SensorManager) context.getSystemService(SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ALL);
         for (Sensor sensor : defaultSensor) {
-            //   Log.e("qtfreet000", sensor.getName());
-//            Log.e("qtfreet00",sensor.getVendor());
-            if (sensor.getName().equals("Gravity")) {
+            if (sensor.getType() == TYPE_GRAVITY) { //不能使用getName去判断是否存在重力感应器，应交与系统判断
                 z = true;
                 break;
             }
