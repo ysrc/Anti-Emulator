@@ -348,7 +348,7 @@ jint check(JNIEnv *env, jobject instance) {
     antiProperty("init.svc.ttVM_x86-setup");
     antiProperty("init.svc.xxkmsg");
     antiProperty("init.svc.microvirtd");
-    antiProperty("ro.secure'");
+//    antiProperty("ro.secure");
     antiProperty("ro.kernel.android.qemud");
     antiProperty("ro.kernel.qemu.gles");
     antiProperty("androVM.vbox_dpi");
