@@ -231,7 +231,7 @@ public class Check {
         return frequency.trim();
     }
 
-    private static int getCpuMaxFrequency() {
+    public static int getCpuMaxFrequency() {
         File file = new File("/sys/devices/system/cpu");
         if (!file.exists()) {
             return 0;

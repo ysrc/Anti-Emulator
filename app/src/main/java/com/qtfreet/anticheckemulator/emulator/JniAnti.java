@@ -16,4 +16,6 @@ public class JniAnti {
     public static native String getKernelVersion();
 
     public static native String getDeviceID();
+
+    public static native int checkAntiFile();
 }

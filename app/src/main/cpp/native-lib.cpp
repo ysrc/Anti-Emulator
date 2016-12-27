@@ -19,6 +19,8 @@
 
 extern "C" {
 
+int i = 0;
+
 char *jstringToChar(JNIEnv *env, jstring jstr) {
     if (jstr == NULL) {
         return NULL;
@@ -173,7 +175,13 @@ char *getCpuInfo() { //获取cpu型号
     FILE *ptr;
     if ((ptr = fopen(cmd, "r")) != NULL) {
         while (fgets(info, 128, ptr)) {
-
+            char *tmp = NULL;
+            //去掉换行符
+            if (tmp = strstr(info, "\n"))
+                *tmp = '\0';
+            //去掉回车符
+            if (tmp = strstr(info, "\r"))
+                *tmp = '\0';
             if (strstr(info,
                        "Hardware")) {  //真机一般会获取到hardware，示例：Qualcomm MSM 8974 HAMMERHEAD (Flattened Device Tree)
                 strtok(info, split);
@@ -206,6 +214,12 @@ char *getVersionInfo() {   //获取设备版本，真机示例：Linux version 3
     FILE *ptr;
     if ((ptr = fopen(cmd, "r")) != NULL) {
         while (fgets(info, 256, ptr)) {
+            char *tmp = NULL;
+            if (tmp = strstr(info, "\n"))
+                *tmp = '\0';
+            //去掉回车符
+            if (tmp = strstr(info, "\r"))
+                *tmp = '\0';
             //包含qemu+或者tencent均为模拟器
             return info;
         }
@@ -221,6 +235,7 @@ void antiFile(char *res) {
     if (result) {
         LOGE("%s is exsits emulator!", res);
         //     kill(getpid(),SIGKILL);
+        i++;
     }
 }
 
@@ -232,6 +247,7 @@ void antiProperty(char *res) {
     if (result != 0) {
         LOGE("%s %s is exsits emulator!", res, buff);
         //  kill(getpid(),SIGKILL);
+        i++;
     }
 }
 
@@ -242,6 +258,7 @@ void getDeviceInfo() {
     LOGE("the model name is %s", buff);
     if (!strcmp(buff, "ChangWan")) {
         //  kill(getpid(),SIGKILL);
+
     } else if (!strcmp(buff, "Droid4X")) {                     //非0均为模拟器
         //  kill(getpid(),SIGKILL);
     } else if (!strcmp(buff, "lgshouyou")) {
@@ -252,33 +269,6 @@ void getDeviceInfo() {
         //  kill(getpid(),SIGKILL);
     }
 
-}
-
-void check() {
-
-    antiFile("/system/bin/qemu_props"); //检测原生模拟器
-    antiFile("/system/bin/qemud");
-    antiFile("/system/bin/androVM-prop");
-    antiFile("/system/bin/microvirt-prop");
-    antiFile("/system/lib/libdroid4x.so");
-    antiFile("/system/bin/windroyed");
-    antiFile("/system/bin/microvirtd");
-    antiFile("/system/bin/nox-prop"); //夜神
-    antiFile("/system/bin/ttVM-prop"); //天天
-    antiFile("/system/bin/droid4x-prop");
-    antiProperty("init.svc.vbox86-setup");
-    antiProperty("init.svc.droid4x");
-    antiProperty("init.svc.qemud");
-    antiProperty("init.svc.su_kpbs_daemon");
-    antiProperty("init.svc.noxd");
-    antiProperty("init.svc.ttVM_x86-setup");
-    antiProperty("init.svc.xxkmsg");
-    antiProperty("init.svc.microvirtd");
-    antiProperty("ro.secure'");
-    antiProperty("ro.kernel.android.qemud");
-    antiProperty("ro.kernel.qemu.gles");
-    antiProperty("androVM.vbox_dpi");
-    antiProperty("androVM.vbox_graph_mode");
 }
 
 
@@ -337,6 +327,33 @@ char *SocketTest(char *c) {
 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the init.svc.vbox86-setup result is stopped
 12-13 12:20:58.671 1615-1615/? E/qtfreet00: the init.svc.microvirtd result is running*/
 
+jint check(JNIEnv *env, jobject instance) {
+
+    antiFile("/system/bin/qemu_props"); //检测原生模拟器
+    antiFile("/system/bin/qemud");
+    antiFile("/system/bin/androVM-prop");
+    antiFile("/system/bin/microvirt-prop");
+    antiFile("/system/lib/libdroid4x.so");
+    antiFile("/system/bin/windroyed");
+    antiFile("/system/bin/microvirtd");
+    antiFile("/system/bin/nox-prop"); //夜神
+    antiFile("/system/bin/ttVM-prop"); //天天
+    antiFile("/system/bin/droid4x-prop");
+    antiProperty("init.svc.vbox86-setup");
+    antiProperty("init.svc.droid4x");
+    antiProperty("init.svc.qemud");
+    antiProperty("init.svc.su_kpbs_daemon");
+    antiProperty("init.svc.noxd");
+    antiProperty("init.svc.ttVM_x86-setup");
+    antiProperty("init.svc.xxkmsg");
+    antiProperty("init.svc.microvirtd");
+    antiProperty("ro.secure'");
+    antiProperty("ro.kernel.android.qemud");
+    antiProperty("ro.kernel.qemu.gles");
+    antiProperty("androVM.vbox_dpi");
+    antiProperty("androVM.vbox_graph_mode");
+    return i;
+}
 
 jstring getCpuinfo(JNIEnv *env, jobject instance) {
 
@@ -364,6 +381,7 @@ static JNINativeMethod gMethods[] = {
         {"getKernelVersion", "()Ljava/lang/String;", (void *) getKernelVersion},
         {"getCpuinfo",       "()Ljava/lang/String;", (void *) getCpuinfo},
         {"getDeviceID",      "()Ljava/lang/String;", (void *) getDeviceID},
+        {"checkAntiFile",    "()I",                  (void *) check},
 };
 
 static int registerNativeMethods(JNIEnv *env, const char *className,
@@ -386,7 +404,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
         return -1;
     }
     //目前已知问题，检测/sys/class/thermal/和bluetooth-jni.so不稳定，存在兼容性问题
-    check();
     getDeviceInfo();
 
     if (registerNativeMethods(env, gClassName, gMethods,
