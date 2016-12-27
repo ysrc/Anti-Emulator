@@ -333,19 +333,19 @@ jint check(JNIEnv *env, jobject instance) {
     antiFile("/system/bin/qemu_props"); //检测原生模拟器
     // antiFile("/system/bin/qemud");  //小米会检测出此项
     antiFile("/system/bin/androVM-prop");
-    antiFile("/system/bin/microvirt-prop");
-    antiFile("/system/lib/libdroid4x.so");
-    antiFile("/system/bin/windroyed");
-    antiFile("/system/bin/microvirtd");
+    antiFile("/system/bin/microvirt-prop");//逍遥
+    antiFile("/system/lib/libdroid4x.so"); //海马玩
+    antiFile("/system/bin/windroyed");//文卓爷
+    antiFile("/system/bin/microvirtd");//逍遥
     antiFile("/system/bin/nox-prop"); //夜神
     antiFile("/system/bin/ttVM-prop"); //天天
     antiFile("/system/bin/droid4x-prop");
-    antiProperty("init.svc.vbox86-setup");
+    antiProperty("init.svc.vbox86-setup"); //基于vitrualbox
     antiProperty("init.svc.droid4x");
     antiProperty("init.svc.qemud");
     antiProperty("init.svc.su_kpbs_daemon");
-    antiProperty("init.svc.noxd");
-    antiProperty("init.svc.ttVM_x86-setup");
+    antiProperty("init.svc.noxd"); //夜神
+    antiProperty("init.svc.ttVM_x86-setup"); //天天
     antiProperty("init.svc.xxkmsg");
     antiProperty("init.svc.microvirtd");
 //    antiProperty("ro.secure");
