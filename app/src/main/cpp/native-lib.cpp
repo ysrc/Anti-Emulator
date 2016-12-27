@@ -206,7 +206,8 @@ char *getCpuInfo() { //获取cpu型号
     }
 }
 
-char *getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.4.0-cyanogenmod (ls@ywk) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Tue Apr 12 11:38:13 CST 2016
+char *
+getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.4.0-cyanogenmod (ls@ywk) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Tue Apr 12 11:38:13 CST 2016
 // 海马玩：   Linux version 3.4.0-qemu+ (droid4x@CA) (gcc version 4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5) ) #25 SMP PREEMPT Tue Sep 22 15:50:48
     char *info = new char[256];
     memset(info, 0, 256);
@@ -330,7 +331,7 @@ char *SocketTest(char *c) {
 jint check(JNIEnv *env, jobject instance) {
 
     antiFile("/system/bin/qemu_props"); //检测原生模拟器
-    antiFile("/system/bin/qemud");
+    // antiFile("/system/bin/qemud");  //小米会检测出此项
     antiFile("/system/bin/androVM-prop");
     antiFile("/system/bin/microvirt-prop");
     antiFile("/system/lib/libdroid4x.so");
