@@ -340,6 +340,7 @@ jint check(JNIEnv *env, jobject instance) {
     antiFile("/system/bin/nox-prop"); //夜神
     antiFile("/system/bin/ttVM-prop"); //天天
     antiFile("/system/bin/droid4x-prop");
+    antiFile("/data/.bluestacks.prop");//bluestacks
     antiProperty("init.svc.vbox86-setup"); //基于vitrualbox
     antiProperty("init.svc.droid4x");
     antiProperty("init.svc.qemud");

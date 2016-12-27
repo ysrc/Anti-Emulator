@@ -51,10 +51,10 @@ public class MainActivity extends AppCompatActivity {
         int check = JniAnti.checkAntiFile();
         boolean gps = Check.hasGPSDevice(this);
         StringBuilder sb = new StringBuilder();
-        if (cpu.contains("Genuine Intel(R)")||cpu.contains("Intel(R) Core(TM)") || cpu.contains("Intel(R) Pentium(R)") || cpu.contains("Intel(R) Xeon(R)") || cpu.contains("AMD")) {
-            sb.append("特征一：" + cpu+"\n");
+        if (cpu.contains("Genuine Intel(R)") || cpu.contains("Intel(R) Core(TM)") || cpu.contains("Intel(R) Pentium(R)") || cpu.contains("Intel(R) Xeon(R)") || cpu.contains("AMD")) {
+            sb.append("特征一：" + cpu + "\n");
         }
-        if (kernel.contains("qemu+") || kernel.contains("tencent")) {
+        if (kernel.contains("qemu+") || kernel.contains("tencent") || kernel.contains("virtualbox")) {
             sb.append("特征二：" + kernel + "\n");
         }
         if (gravity == false) {
