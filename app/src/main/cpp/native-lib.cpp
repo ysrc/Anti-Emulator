@@ -251,6 +251,18 @@ void antiProperty(char *res) {
         i++;
     }
 }
+    
+void antiPropertyValueContains(char *res, char *val) {
+    char buff[PROP_VALUE_MAX + 1];
+    memset(buff, 0, PROP_VALUE_MAX + 1);
+    int lman = __system_property_get(res, buff);
+    if (lman > 0) {
+        if (strstr(buff, val) != NULL) { // match!
+            LOGE("%s property value contains %s . Emulator!", res, val);
+            i++;
+        }
+    }
+}
 
 void getDeviceInfo() {
     char buff[PROP_VALUE_MAX];
@@ -354,6 +366,7 @@ jint check(JNIEnv *env, jobject instance) {
     antiProperty("ro.kernel.qemu.gles");
     antiProperty("androVM.vbox_dpi");
     antiProperty("androVM.vbox_graph_mode");
+    antiPropertyValueContains("ro.product.manufacturer", "Genymotion"); // Genymotion check
     return i;
 }
 
