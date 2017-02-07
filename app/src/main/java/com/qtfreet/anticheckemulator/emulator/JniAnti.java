@@ -15,7 +15,7 @@ public class JniAnti {
 
     public static native String getKernelVersion();
 
-    public static native String getDeviceID();
+    public static native String getDeviceID(); //优测测试时提示没有权限读取read_phone_state，这里已经Mainifest注册
 
     public static native int checkAntiFile();
 }

@@ -4,15 +4,11 @@
 #include <sys/system_properties.h>
 #include <android/log.h>
 #include <unistd.h>
-#include <dirent.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-#include <errno.h>
-#include <signal.h> // sigtrap stuff, duh
 
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
 
@@ -85,6 +81,7 @@ jobject getApplication(JNIEnv *env) {
 
 
 char *verifySign(JNIEnv *env) {
+    //此处用于获取app签名
     jobject context = getApplication(env);
     jclass activity = env->GetObjectClass(context);
     // 得到 getPackageManager 方法的 ID
@@ -166,6 +163,9 @@ jstring getDeviceID(JNIEnv *env, jobject instance) {
 }
 
 char *getCpuInfo() { //获取cpu型号
+    //此处在测试时去判断cpu型号是否是intel core，至强或者奔腾，AMD系列，x86手机cpu型号为intel atom，arm一般为联发科，高通，麒麟等等
+    //如是判断为前者，则认为当前环境为模拟器
+
     char *info = new char[128];
     memset(info, 0, 128);
 //    char *res = new char[256];
@@ -197,7 +197,7 @@ char *getCpuInfo() { //获取cpu型号
                     strstr(s, "AMD")) { //分别为最常见的酷睿，奔腾，至强，AMD处理器
 
                 }
-
+                LOGE("the cpu native info is %s", s);
                 return s;
             }
         }
@@ -207,8 +207,10 @@ char *getCpuInfo() { //获取cpu型号
 }
 
 char *
-getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.4.0-cyanogenmod (ls@ywk) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Tue Apr 12 11:38:13 CST 2016
+getVersionInfo() {
+//获取设备版本，真机示例：Linux version 3.4.0-cyanogenmod (ls@ywk) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Tue Apr 12 11:38:13 CST 2016
 // 海马玩：   Linux version 3.4.0-qemu+ (droid4x@CA) (gcc version 4.6.3 (Ubuntu/Linaro 4.6.3-1ubuntu5) ) #25 SMP PREEMPT Tue Sep 22 15:50:48
+    //腾讯模拟器中包含了tencent字眼
     char *info = new char[256];
     memset(info, 0, 256);
     char *cmd = "/proc/version";
@@ -222,6 +224,7 @@ getVersionInfo() {   //获取设备版本，真机示例：Linux version 3.4.0-c
             if (tmp = strstr(info, "\r"))
                 *tmp = '\0';
             //包含qemu+或者tencent均为模拟器
+            LOGE("the kernel info is %s", info);
             return info;
         }
     } else {
@@ -234,7 +237,7 @@ void antiFile(char *res) {
     struct stat buf;
     int result = stat(res, &buf) == 0 ? 1 : 0;
     if (result) {
-        LOGE("%s is exsits emulator!", res);
+        LOGE("%s  exsits, emulator!", res);
         //     kill(getpid(),SIGKILL);
         i++;
     }
@@ -246,12 +249,12 @@ void antiProperty(char *res) {
     int result =
             __system_property_get(res, (char *) &buff) > 0 ? 1 : 0; //返回命令行内容的长度
     if (result != 0) {
-        LOGE("%s %s is exsits emulator!", res, buff);
+        LOGE("%s %s  exsits, emulator!", res, buff);
         //  kill(getpid(),SIGKILL);
         i++;
     }
 }
-    
+
 void antiPropertyValueContains(char *res, char *val) {
     char buff[PROP_VALUE_MAX + 1];
     memset(buff, 0, PROP_VALUE_MAX + 1);
@@ -354,19 +357,20 @@ jint check(JNIEnv *env, jobject instance) {
     antiFile("/system/bin/droid4x-prop");
     antiFile("/data/.bluestacks.prop");//bluestacks
     antiProperty("init.svc.vbox86-setup"); //基于vitrualbox
-    antiProperty("init.svc.droid4x");
+    antiProperty("init.svc.droid4x"); //海马玩
     antiProperty("init.svc.qemud");
     antiProperty("init.svc.su_kpbs_daemon");
     antiProperty("init.svc.noxd"); //夜神
     antiProperty("init.svc.ttVM_x86-setup"); //天天
     antiProperty("init.svc.xxkmsg");
-    antiProperty("init.svc.microvirtd");
-//    antiProperty("ro.secure");
+    antiProperty("init.svc.microvirtd");//逍遥
+//    antiProperty("ro.secure");   //检测selinux是否被关闭，一般手机均开启此选项
     antiProperty("ro.kernel.android.qemud");
-    antiProperty("ro.kernel.qemu.gles");
+    //  antiProperty("ro.kernel.qemu.gles"); //三星SM-G5500误报此项
     antiProperty("androVM.vbox_dpi");
     antiProperty("androVM.vbox_graph_mode");
-    antiPropertyValueContains("ro.product.manufacturer", "Genymotion"); // Genymotion check
+    antiPropertyValueContains("ro.product.manufacturer",
+                              "Genymotion"); // Genymotion check ,thx alinbaturn
     return i;
 }
 

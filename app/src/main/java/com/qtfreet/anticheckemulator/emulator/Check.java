@@ -1,6 +1,5 @@
 package com.qtfreet.anticheckemulator.emulator;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -118,7 +117,7 @@ public class Check {
     }
 
     public static String getModelName() {
-        return Build.MODEL;
+        return Build.MODEL;  //Mumu为网易模拟器
     }
 
     public static String getModelBrand() {

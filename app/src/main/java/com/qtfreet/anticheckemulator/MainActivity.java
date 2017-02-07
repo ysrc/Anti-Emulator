@@ -13,15 +13,15 @@ import com.qtfreet.anticheckemulator.utils.Util;
 
 public class MainActivity extends AppCompatActivity {
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         TextView tv = (TextView) findViewById(R.id.sample_text);
         GLSurfaceView gl = (GLSurfaceView) findViewById(R.id.hwGPU);
-        gl.setRenderMode(0);
+        gl.setRenderMode(0);  //此处是为了加载显卡信息
         Log.e("qtfreet000", "APK签名：" + JniAnti.getApkSign());
         Log.e("qtfreet000", "程序包名：" + Check.getPackageName(this));
         Log.e("qtfreet000", "CPU信息：" + JniAnti.getCpuinfo());
@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
         Log.e("qtfreet000", "已安装App：" + Check.getInstalledApps(this));
         Log.e("qtfreet000", "MAC地址：" + Check.getMacAddress(this));
         Log.e("qtfreet000", "内存大小：" + Check.getMemorySize());
-        Log.e("qtfreet000", "存在重力感应器：" + Check.checkGravity(this));
+        // Log.e("qtfreet000", "存在重力感应器：" + Check.checkGravity(this));  //这点不靠谱，很多手机还是检测不出来
         Log.e("qtfreet000", "设备厂商：" + Check.getModelBrand());
         Log.e("qtfreet000", "设备型号：" + Check.getModelName());
         Log.e("qtfreet000", "支持GPS：" + Check.hasGPSDevice(this));

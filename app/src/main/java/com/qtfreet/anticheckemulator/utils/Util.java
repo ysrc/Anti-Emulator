@@ -10,11 +10,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by qtfreet on 2016/12/22.
+ * Created by qtfreet on 2017/2/7.
  */
 
 public class Util {
@@ -118,5 +117,4 @@ public class Util {
         }
         return String.format("%.1f°C", new Object[]{Float.valueOf(temp)});
     }
-
 }
