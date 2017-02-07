@@ -9,7 +9,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <errno.h>
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "qtfreet00", __VA_ARGS__)
 
 
@@ -354,7 +354,7 @@ jint check(JNIEnv *env, jobject instance) {
     antiFile("/system/bin/microvirtd");//逍遥
     antiFile("/system/bin/nox-prop"); //夜神
     antiFile("/system/bin/ttVM-prop"); //天天
-    antiFile("/system/bin/droid4x-prop");
+    antiFile("/system/bin/droid4x-prop"); //海马玩
     antiFile("/data/.bluestacks.prop");//bluestacks
     antiProperty("init.svc.vbox86-setup"); //基于vitrualbox
     antiProperty("init.svc.droid4x"); //海马玩

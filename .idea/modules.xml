@@ -3,8 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Anti-Emulator.iml" filepath="$PROJECT_DIR$/Anti-Emulator.iml" />
-      <module fileurl="file://$PROJECT_DIR$/AntiCheckEmulator.iml" filepath="$PROJECT_DIR$/AntiCheckEmulator.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
